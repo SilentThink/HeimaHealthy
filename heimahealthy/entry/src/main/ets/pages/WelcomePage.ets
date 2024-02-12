@@ -1,14 +1,58 @@
+import common from '@ohos.app.ability.common'
+import preferences from '@ohos.data.preferences'
+import router from '@ohos.router'
+import preferenceUtil from '../common/utils/PreferenceUtil'
+import UserPrivacyDialog from '../view/welcome/UserPrivacyDialog'
 @Extend(Text) function opacityWhiteText(opacity: number, fontSize: number = 10){
   .fontSize(fontSize)
   .opacity(opacity)
   .fontColor(Color.White)
 }
 
+const PREF_KEY = 'userPrivacyKey'
+
 @Entry
 @Component
 struct WelcomePage {
-  @State message: string = 'Hello World'
+  context = getContext(this) as common.UIAbilityContext
+  controller: CustomDialogController = new CustomDialogController({
+    builder: UserPrivacyDialog({
+      confirm: () => this.onConfirm(),
+      cancel: () => this.exitApp()
+    })
+  })
 
+  async aboutToAppear(){
+    // 1.加载首选项
+    let isAgree = await preferenceUtil.getPreferenceValue(PREF_KEY, false)
+    // 2.判断是否同意
+    if(isAgree){
+      // 2.1.同意，跳转首页
+      this.jumpToIndex()
+    }else{
+      // 2.2.不同意，弹窗
+      this.controller.open()
+    }
+  }
+  jumpToIndex(){
+    setTimeout(() => {
+      router.replaceUrl({
+        url: 'pages/Index'
+      })
+    }, 1000)
+  }
+
+  onConfirm(){
+    // 1.保存首选项
+    preferenceUtil.putPreferenceValue(PREF_KEY, true)
+    // 2.跳转到首页
+    this.jumpToIndex()
+  }
+
+  exitApp(){
+    // 退出APP
+    this.context.terminateSelf()
+  }
   build() {
     Column({space:10}) {
       // 1.中央slogan
