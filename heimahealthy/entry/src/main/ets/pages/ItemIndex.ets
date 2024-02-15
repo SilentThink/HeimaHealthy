@@ -1,17 +1,58 @@
 import router from '@ohos.router'
 import { CommonConstants } from '../common/constants/CommonConstants'
+import ItemCard from '../view/item/ItemCard'
 import ItemList from '../view/item/ItemList'
+import ItemPanelHeader from '../view/item/ItemPanelHeader'
+import NumberKeyboard from '../view/item/NumberKeyboard'
 @Entry
 @Component
 struct ItemIndex {
-  @State message: string = 'Hello World'
+  @State amount: number = 1
+  @State value: string = ''
+  @State showPanel: boolean = false
+
+  onPanelShow(){
+    this.amount = 1
+    this.value = ''
+    this.showPanel = true
+  }
 
   build() {
     Column() {
       // 1.头部巡航
       this.Header()
       // 2.列表
-      ItemList()
+      ItemList({showPanel: this.onPanelShow.bind(this)})
+        .layoutWeight(1)
+      // 3.底部面板
+      Panel(this.showPanel){
+        // 3.1.顶部日期
+        ItemPanelHeader()
+        // 3.2.记录项卡片
+        ItemCard({amount: this.amount})
+        // 3.3.数字键盘
+        NumberKeyboard({amount: $amount, value: $value})
+        // 3.4.按钮
+        Row({space: CommonConstants.SPACE_6}){
+          Button('取消')
+            .width(120)
+            .backgroundColor($r('app.color.light_gray'))
+            .type(ButtonType.Normal)
+            .borderRadius(6)
+            .onClick(() => this.showPanel = false)
+          Button('提交')
+            .width(120)
+            .backgroundColor($r('app.color.primary_color'))
+            .type(ButtonType.Normal)
+            .borderRadius(6)
+            .onClick(() => this.showPanel = false)
+        }
+        .margin({top: 10})
+      }
+      .mode(PanelMode.Full)
+      .dragBar(false)
+      .backgroundMask($r('app.color.light_gray'))
+      .backgroundColor(Color.White)
     }
     .width('100%')
     .height('100%')
